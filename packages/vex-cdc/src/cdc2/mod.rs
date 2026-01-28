@@ -66,6 +66,7 @@ pub mod ecmds {
     pub const CON_GET_STATUS_PKT: u8 = 0x3A; //returns the same raw data as is sent to brain
     pub const CON_FLASH_ERASE: u8 = 0x3B;
     pub const CON_FLASH_WRITE: u8 = 0x3C;
+    pub const CON_FLASH_READ: u8 = 0x3D;
     pub const CON_FLASH_VALIDATE: u8 = 0x3E;
     pub const CON_RADIO_FORCE: u8 = 0x3F;
     pub const CON_RADIO_MODE: u8 = 0x41; //changes channel type

@@ -56,6 +56,12 @@ impl<const CMD: u8, const ECMD: u8, P: Decode> CheckHeader for Cdc2ReplyPacket<C
     }
 }
 
+impl<const N: usize, T> CheckHeader for [T; N] {
+    fn has_valid_header(mut data: &[u8]) -> bool {
+        true
+    }
+}
+
 impl<const CMD: u8, P: Decode> CheckHeader for CdcReplyPacket<CMD, P> {
     fn has_valid_header(data: &[u8]) -> bool {
         let Some(data) = data.get(0..3) else {

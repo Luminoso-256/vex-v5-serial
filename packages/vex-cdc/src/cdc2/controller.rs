@@ -9,8 +9,7 @@ use crate::{
     Decode, DecodeError, DecodeErrorKind, Encode, FixedString, cdc::cmds::{CON_CDC, USER_CDC}, cdc2::{
         Cdc2CommandPacket, Cdc2ReplyPacket,
         ecmds::{
-            CON_COMP_CTRL, CON_COMP_GET_SMARTFIELD, CON_GET_STATUS_PKT, CON_RADIO_CONFIGURE,
-            CON_RADIO_CONTYPE, USER_READ,
+            CON_COMP_CTRL, CON_COMP_GET_SMARTFIELD, CON_FLASH_READ, CON_GET_STATUS_PKT, CON_RADIO_CONFIGURE, CON_RADIO_CONTYPE, USER_READ
         },
     }
 };
@@ -37,6 +36,56 @@ impl Decode for ControllerRadioType {
                 }));
             }
         })
+    }
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[repr(u8)]
+pub enum ConFlashAssetIdx {
+    JoyImage = 0x0,
+    JoyImageData = 0x1,
+    StringTable = 0x2,
+    StringTableData = 0x3,
+    JoyFont3 = 0x4,
+    JoyFont3Data = 0x5,
+    JoyFont4 = 0x6,
+    JoyFont4Data = 0x7,
+    JoyIcon = 0x8,
+    JoyIconData = 0x9,
+    Devfrm08 = 0xA,
+    Devfrm08Data = 0xB,
+    //this is hack based on a missing bounds check.
+    //this will stop working if a firmware update happens.
+    FlashBase = 219,
+}
+
+pub type ConFlashReadPacket = Cdc2CommandPacket<CON_CDC,CON_FLASH_READ,ConFlashReadPayload>;
+//must match how many bytes you ask the controller for.
+pub type ConFlashReadReplyPacket<const N: usize> = Cdc2ReplyPacket<CON_CDC,CON_FLASH_READ,[u8; N]>;
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct ConFlashReadPayload {
+    pub asset: ConFlashAssetIdx,
+    pub offset_bytes: u8,
+    //256 bytes (0x100)
+    pub offset_sectors: u8,
+    //0x10000 bytes
+    pub offset_65kb: u8,
+    pub size: u32,
+}
+
+impl Encode for ConFlashReadPayload {
+    fn size(&self) -> usize {
+        4 + 4
+    }
+
+    fn encode(&self, data: &mut [u8]) {
+        data[0] = self.asset as u8;
+        data[1] = self.offset_bytes;
+        data[2] = self.offset_sectors;
+        data[3] = self.offset_65kb;
+
+        self.size.encode(&mut data[4..]);
     }
 }
 
